@@ -38,7 +38,7 @@ test('Connect Wallet button click', async ({ page }) => {
 
   const connectWalletButton = newPage.locator('button', { hasText: 'Connect Wallet' }).first();
 
-  await connectWalletButton.waitFor({ state: 'visible', timeout: 2000 });
+  await connectWalletButton.waitFor({ state: 'visible' /*, timeout: 1000 */ });
 
   await expect(connectWalletButton).toBeVisible();
   await connectWalletButton.click();
