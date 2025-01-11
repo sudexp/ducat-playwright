@@ -42,6 +42,12 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
 
     await toastPopup.waitFor({ state: 'detached', timeout: 7000 });
     await expect(toastPopup).not.toBeVisible();
+
+    const inputField = newPage.locator('input[placeholder="Invitation Code"]');
+    const verifyButton = newPage.locator('button', { hasText: 'Verify' });
+
+    await expect(inputField).toBeDisabled();
+    await expect(verifyButton).toBeDisabled();
   } catch (err) {
     console.error('Toast popup did not appear or detached: ', err);
   }
