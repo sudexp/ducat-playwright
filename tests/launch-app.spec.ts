@@ -74,7 +74,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed', asy
 
   const pathToExtension = path.join(__dirname, '../xverse/');
   const context = await chromium.launchPersistentContext('', {
-    headless: false,
+    headless: process.env.CI === 'true',
     args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
   });
 

@@ -9,7 +9,7 @@ export const test = base.extend<{
   context: async ({}, use) => {
     const pathToExtension = path.join(__dirname, '../xverse/');
     const context = await chromium.launchPersistentContext('', {
-      headless: false,
+      headless: process.env.CI === 'true',
       args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
     });
 
