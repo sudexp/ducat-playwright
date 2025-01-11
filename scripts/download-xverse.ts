@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 import axios from 'axios';
-import unzipper from 'unzipper';
+import unzipCrx from 'unzip-crx'; // Импортируем unzip-crx
+
+dotenv.config();
 
 const CRX_URL = process.env.CRX_URL as string;
 const EXTENSION_DIR = path.join(__dirname, '../xverse');
@@ -23,10 +26,6 @@ const downloadFile = async (url: string, destination: string): Promise<void> => 
   });
 };
 
-const unzipExtension = (crxFilePath: string, destination: string): void => {
-  fs.createReadStream(crxFilePath).pipe(unzipper.Extract({ path: destination }));
-};
-
 if (!fs.existsSync(EXTENSION_DIR)) {
   fs.mkdirSync(EXTENSION_DIR, { recursive: true });
 }
@@ -38,8 +37,8 @@ if (!fs.existsSync(EXTENSION_DIR)) {
     console.log('Downloading Xverse extension...');
     await downloadFile(CRX_URL, crxFilePath);
 
-    console.log('Unzipping Xverse extension...');
-    unzipExtension(crxFilePath, EXTENSION_DIR);
+    console.log('Unzipping CRX extension...');
+    await unzipCrx(crxFilePath, EXTENSION_DIR);
 
     console.log('Xverse extension downloaded and unpacked successfully!');
   } catch (error) {
