@@ -23,7 +23,7 @@ jobs:
         env:
           CRX_URL: ${{ secrets.CRX_URL }}
       - name: Run Playwright tests
-        run: yarn playwright test
+        run: yarn playwright test --headed=false
         env:
           ROOT_URL: ${{ secrets.ROOT_URL }}
           EARLY_SUCCESS_URL: ${{ secrets.EARLY_SUCCESS_URL }}
