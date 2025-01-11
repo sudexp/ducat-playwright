@@ -38,7 +38,7 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
   await connectWalletButton.click();
 
   const popupText = 'Please Install Xverse Wallet to Continue.';
-  const toastPopup = newPage.locator('section[aria-label="Notifications alt+T"] div').filter({ hasText: popupText });
+  const toastPopup = newPage.locator('section[aria-label="Notifications alt+T"] div').filter({ hasText: popupText }).first();
 
   try {
     await toastPopup.waitFor({ state: 'visible', timeout: 2000 });
