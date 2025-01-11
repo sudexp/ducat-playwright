@@ -1,5 +1,6 @@
 import { test as base, chromium, type BrowserContext } from '@playwright/test';
 import path from 'path';
+import { getHeadless } from './launch-app';
 
 // https://playwright.dev/docs/chrome-extensions --> not currently in use
 export const test = base.extend<{
@@ -9,7 +10,7 @@ export const test = base.extend<{
   context: async ({}, use) => {
     const pathToExtension = path.join(__dirname, '../xverse/');
     const context = await chromium.launchPersistentContext('', {
-      headless: process.env.CI === 'true',
+      headless: getHeadless(process.env.CI),
       args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
     });
 

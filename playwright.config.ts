@@ -6,6 +6,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 import dotenv from 'dotenv';
 import path from 'path';
+import { getHeadless } from './utils/launch-app';
+
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
@@ -30,7 +32,7 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    headless: process.env.CI === 'true',
+    headless: getHeadless(process.env.CI),
   },
 
   /* Configure projects for major browsers */

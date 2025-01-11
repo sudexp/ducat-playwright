@@ -1,7 +1,7 @@
 import { test, expect, chromium } from '@playwright/test';
 import path from 'path';
 
-import { clickLaunchAppAndWaitForPage } from '../utils/launch-app';
+import { clickLaunchAppAndWaitForPage, getHeadless } from '../utils/launch-app';
 
 test.beforeEach(async ({ page }) => {
   const ROOT_URL = process.env.ROOT_URL;
@@ -74,7 +74,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed', asy
 
   const pathToExtension = path.join(__dirname, '../xverse/');
   const context = await chromium.launchPersistentContext('', {
-    headless: process.env.CI === 'true',
+    headless: getHeadless(process.env.CI),
     args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
   });
 

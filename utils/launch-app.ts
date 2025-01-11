@@ -16,3 +16,7 @@ export const clickLaunchAppAndWaitForPage = async (page: any) => {
 
   return newPage;
 };
+
+export const getHeadless = (CI: string | undefined) => {
+  return CI === 'true' || CI === undefined;
+};
