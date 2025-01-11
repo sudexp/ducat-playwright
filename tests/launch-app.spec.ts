@@ -25,8 +25,12 @@ test('Launch App button click opens new page', async ({ page }) => {
 
 test('Connect Wallet button click shows temporarily popup if Xverse Wallet is not installed', async ({ page }) => {
   const newPage = await clickLaunchAppAndWaitForPage(page);
-  const connectWalletButton = newPage.locator('button', { hasText: 'Connect Wallet' }).first();
 
+  const connectWalletText = 'Connect Wallet';
+  const connectWalletButton = newPage.locator('button', { hasText: connectWalletText }).first();
+  const firstStep = newPage.locator('p', { hasText: connectWalletText });
+
+  await expect(firstStep).toHaveClass(/text-text-primary/);
   await connectWalletButton.waitFor({ state: 'visible' /*, timeout: 1000 */ });
   await expect(connectWalletButton).toBeVisible();
   await connectWalletButton.click();
@@ -48,6 +52,12 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
 
     await expect(inputField).toBeDisabled();
     await expect(verifyButton).toBeDisabled();
+
+    const leading5Elements = newPage.locator('.leading-5');
+
+    for (const element of leading5Elements) {
+      await expect(element).toHaveClass(/text-text-secondary/);
+    }
   } catch (err) {
     console.error('Toast popup did not appear or detached: ', err);
   }
