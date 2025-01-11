@@ -1,0 +1,13 @@
+{
+  "name": "ducat-playwright",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/sudexp/ducat-playwright.git",
+  "author": "Dmitry Sklyarov <dmitry.sklyarov@movya.fi>",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.5"
+  },
+  "scripts": {}
+}
