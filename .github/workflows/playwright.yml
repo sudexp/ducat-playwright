@@ -23,10 +23,11 @@ jobs:
         env:
           CRX_URL: ${{ secrets.CRX_URL }}
       - name: Run Playwright tests
-        run: yarn playwright test --headed=false
+        run: yarn playwright test
         env:
           ROOT_URL: ${{ secrets.ROOT_URL }}
           EARLY_SUCCESS_URL: ${{ secrets.EARLY_SUCCESS_URL }}
+          CI: true
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
