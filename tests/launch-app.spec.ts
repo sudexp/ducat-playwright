@@ -53,7 +53,7 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
     await expect(inputField).toBeDisabled();
     await expect(verifyButton).toBeDisabled();
 
-    const leading5Elements = newPage.locator('.leading-5');
+    const leading5Elements = newPage.locator('.leading-5').all();
 
     for (const element of leading5Elements) {
       await expect(element).toHaveClass(/text-text-secondary/);
