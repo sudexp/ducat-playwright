@@ -38,7 +38,7 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
   await connectWalletButton.click();
 
   const popupText = 'Please Install Xverse Wallet to Continue.';
-  const toastPopup = newPage.locator('section[aria-label="Notifications alt+T"] div').filter({ hasText: popupText }).first();
+  const toastPopup = newPage.locator('section[aria-label="Notifications alt+T"] div').filter({ hasText: popupText }); // .first();
 
   try {
     await toastPopup.waitFor({ state: 'visible', timeout: 2000 });
@@ -53,7 +53,7 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
     await expect(inputField).toBeDisabled();
     await expect(verifyButton).toBeDisabled();
 
-    const leading5Elements = newPage.locator('.leading-5').all();
+    const leading5Elements = newPage.locator('.leading-5'); // .all();
 
     for (const element of leading5Elements) {
       await expect(element).toHaveClass(/text-text-secondary/);
@@ -78,19 +78,28 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed', asy
     args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
   });
 
-  const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]);
+  const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]); // --> chrome-extension://{hash}/options.html#/landing
   const extensionWindow = extensionTab.locator('body');
 
   try {
     await extensionWindow.waitFor({ state: 'visible', timeout: 5000 });
     await expect(extensionWindow).toBeVisible();
-    await expect(extensionWindow).toHaveText('Xverse Wallet');
+    await expect(extensionWindow).toContainText('The Bitcoin wallet for everyone');
 
     const createWalletButton = extensionWindow.locator('button', { hasText: 'Create a new wallet' });
     const restoreWalletButton = extensionWindow.locator('button', { hasText: 'Restore an existing wallet' });
 
     await expect(createWalletButton).toBeVisible();
     await expect(restoreWalletButton).toBeVisible();
+    await createWalletButton.click(); // --> chrome-extension://{hash}/options.html#/legal
+
+    const appDiv = extensionWindow.locator('div#app');
+    const firstH1 = appDiv.locator('h1').first();
+    const acceptButton = appDiv.locator('button', { hasText: 'Accept' });
+
+    await expect(firstH1).toHaveText('Legal');
+    await expect(acceptButton).toBeVisible();
+    await acceptButton.click(); // --> chrome-extension://{hash}/options.html#/backup
   } catch (err) {
     console.error('Xverse Wallet did not open or failed to display: ', err);
   } finally {
