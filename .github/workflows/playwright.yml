@@ -20,27 +20,38 @@ jobs:
       - name: Download and unpack Xverse extension
         run: |
           npx tsx scripts/download-xverse.ts
+        env:
+          CRX_URL: ${{ secrets.CRX_URL }}
+      - name: Check if CRX_URL is set
+        run: |
+          if [ -z "${{ secrets.CRX_URL }}" ]; then
+            echo "CRX_URL is not set!"
+            exit 1
+          fi
       - name: Check if Xverse extension folder created
         run: |
           ls -la ./xverse
       - name: Check if Xverse extension files are downloaded
         run: |
           if [ -z "$(ls -A ./xverse)" ]; then
-          echo "No files found in xverse folder!"
-          exit 1
+            echo "No files found in xverse folder!"
+            exit 1
           else
-          echo "Files found in xverse folder."
+            echo "Files found in xverse folder."
           fi
       - name: Wait for extension to load
         run: |
-          sleep 5
-        env:
-          CRX_URL: ${{ secrets.CRX_URL }}
+          echo "Waiting for extension to load..."
+          while [ ! -f ./xverse/manifest.json ]; do
+            sleep 2
+          done
+          echo "Extension is ready!"
       - name: Run Playwright tests
         run: yarn playwright test
         env:
           ROOT_URL: ${{ secrets.ROOT_URL }}
           EARLY_SUCCESS_URL: ${{ secrets.EARLY_SUCCESS_URL }}
+          CRX_URL: ${{ secrets.CRX_URL }}
           CI: true
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
