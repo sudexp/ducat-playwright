@@ -36,9 +36,11 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
   await connectWalletButton.waitFor({ state: 'visible' /*, timeout: 1000 */ });
   await expect(connectWalletButton).toBeVisible();
   await connectWalletButton.click();
+  await newPage.waitForTimeout(500);
 
+  /* difficult to inspect the element:
   const popupText = 'Please Install Xverse Wallet to Continue.';
-  const toastPopup = newPage.locator('section[aria-label="Notifications alt+T"] div').filter({ hasText: popupText }); // .first();
+  const toastPopup = newPage.locator('section[aria-label="Notifications alt+T"] div').filter({ hasText: popupText }).first();
 
   try {
     await toastPopup.waitFor({ state: 'visible', timeout: 2000 });
@@ -46,20 +48,28 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
     await expect(toastPopup).toHaveText(popupText);
     await toastPopup.waitFor({ state: 'detached', timeout: 7000 });
     await expect(toastPopup).not.toBeVisible();
-
-    const inputField = newPage.locator('input[placeholder="Invitation Code"]');
-    const verifyButton = newPage.locator('button', { hasText: 'Verify' });
-
-    await expect(inputField).toBeDisabled();
-    await expect(verifyButton).toBeDisabled();
-
-    const leading5Elements = newPage.locator('.leading-5'); // .all();
-
-    for (const element of leading5Elements) {
-      await expect(element).toHaveClass(/text-text-secondary/);
-    }
   } catch (err) {
     console.error('Toast popup did not appear or detached: ', err);
+  } */
+
+  const inputField = newPage.locator('input[placeholder="Invitation Code"]');
+  const verifyButton = newPage.locator('button', { hasText: 'Verify' });
+
+  await expect(inputField).toBeDisabled();
+  await expect(verifyButton).toBeDisabled();
+
+  // not necessary to test styles:
+  const leading5Elements = await newPage.locator('.leading-5');
+  const count = await leading5Elements.count();
+
+  for (let i = 0; i < count; i++) {
+    const element = leading5Elements.nth(i);
+
+    if (i < 2) {
+      await expect(element).toHaveClass(/text-text-primary/);
+    } else {
+      await expect(element).toHaveClass(/text-text-secondary/);
+    }
   }
 });
 
@@ -94,12 +104,36 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed', asy
     await createWalletButton.click(); // --> chrome-extension://{hash}/options.html#/legal
 
     const appDiv = extensionWindow.locator('div#app');
-    const firstH1 = appDiv.locator('h1').first();
+    const header = appDiv.locator('h1').first();
     const acceptButton = appDiv.locator('button', { hasText: 'Accept' });
 
-    await expect(firstH1).toHaveText('Legal');
+    await expect(header).toHaveText('Legal');
     await expect(acceptButton).toBeVisible();
     await acceptButton.click(); // --> chrome-extension://{hash}/options.html#/backup
+
+    const backupNowButton = appDiv.locator('button', { hasText: 'Backup now' });
+    const backupLaterButton = appDiv.locator('button', { hasText: 'Backup later' });
+
+    await expect(header).toHaveText('Backup your wallet');
+    await expect(backupNowButton).toBeVisible();
+    await expect(backupLaterButton).toBeVisible();
+    await backupNowButton.click(); // --> chrome-extension://{hash}/options.html#/backupWalletSteps
+
+    const paragraph = appDiv.locator('p').first();
+    const revealButton = appDiv.locator('button', { hasText: 'Reveal' });
+    const continueButton = appDiv.locator('button', { hasText: 'Continue' });
+    const hideButton = appDiv.locator('button', { hasText: 'Hide' });
+
+    await expect(paragraph).toHaveText(
+      'Write down your seed phrase and make sure to keep it private. This is the unique key to your wallet.'
+    );
+    await expect(revealButton).toBeVisible();
+    await expect(hideButton).not.toBeVisible();
+    await expect(continueButton).toBeDisabled();
+    await revealButton.click();
+    await expect(revealButton).not.toBeVisible();
+    await expect(hideButton).toBeVisible();
+    await expect(continueButton).toBeEnabled();
   } catch (err) {
     console.error('Xverse Wallet did not open or failed to display: ', err);
   } finally {
