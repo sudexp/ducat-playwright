@@ -1,3 +1,5 @@
+import { Page } from 'playwright';
+
 interface LocalStorageItem {
   key: string;
   value: string;
@@ -24,7 +26,7 @@ export const setLocalStorage = async (page, items: LocalStorageItem[]) => {
   );
 };
 
-export const getLocalStorageItems = async (context: any, keys: string[]) => {
+export const getLocalStorageItems = async (context: Page, keys: string[]) => {
   return await context.evaluate((keys) => {
     return keys.reduce((acc, key) => {
       acc[key] = localStorage.getItem(key);
