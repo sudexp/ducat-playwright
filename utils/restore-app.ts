@@ -13,17 +13,12 @@ export const mockItemsToStore = [
 
 export const keysToRetrieve = mockItemsToStore.map(({ key }) => key);
 
-export const setLocalStorage = async (page, items: LocalStorageItem[]) => {
-  await Promise.all(
-    items.map(({ key, value }) =>
-      page.evaluate(
-        (key, value) => {
-          localStorage.setItem(key, value);
-        },
-        { key, value }
-      )
-    )
-  );
+export const setLocalStorage = async (page: Page, items: LocalStorageItem[]) => {
+  await page.evaluate((items) => {
+    items.forEach(({ key, value }) => {
+      localStorage.setItem(key, value);
+    });
+  }, items);
 };
 
 export const getLocalStorageItems = async (context: Page, keys: string[]) => {
