@@ -5,20 +5,27 @@ export interface LocalStorageItem {
   value: string;
 }
 
+export const WALLET_PRIVATE_DATA = {
+  DISTINCT: process.env.DISTINCT,
+  DEVICE: process.env.DEVICE,
+  TOKEN: process.env.TOKEN,
+  TRANSACTION: process.env.TRANSACTION,
+};
+
 export const mockWalletData: LocalStorageItem[] = [
   {
-    key: '__mpq_0377920f77b44d326f58fe2e73a0a764_ev',
+    key: `__mpq_${WALLET_PRIVATE_DATA.TOKEN}_ev`,
     value: '[]',
   },
   {
-    key: '__mpq_0377920f77b44d326f58fe2e73a0a764_pp',
+    key: `__mpq_${WALLET_PRIVATE_DATA.TOKEN}_pp`,
     value: '[]',
   },
   {
-    key: 'mp_0377920f77b44d326f58fe2e73a0a764_mixpanel',
+    key: `mp_${WALLET_PRIVATE_DATA.TOKEN}_mixpanel`,
     value: JSON.stringify({
-      distinct_id: '02f0b708b747ba8db5e7b07f3bf75b758261e73d6dbca9678472d182cac2490b74',
-      $device_id: '1941965c6b43ea-02d96da10d8c04-1e525636-1d73c0-1941965c6b53ea',
+      distinct_id: WALLET_PRIVATE_DATA.DISTINCT,
+      $device_id: WALLET_PRIVATE_DATA.DEVICE,
       $initial_referrer: '$direct',
       $initial_referring_domain: '$direct',
       __mps: {},
@@ -31,7 +38,7 @@ export const mockWalletData: LocalStorageItem[] = [
       __mpu: {},
       __mpr: [],
       __mpap: [],
-      $user_id: '02f0b708b747ba8db5e7b07f3bf75b758261e73d6dbca9678472d182cac2490b74',
+      $user_id: WALLET_PRIVATE_DATA.DISTINCT,
     }),
   },
   {
@@ -57,7 +64,7 @@ export const mockWalletData: LocalStorageItem[] = [
           rangeColor: 'bg-status-green-100',
           status: 'Healthy',
         },
-        transactionId: '20d37e847f0e2259e454c159aa896de6903cc44842360e8f6a9349703d0fa915',
+        transactionId: WALLET_PRIVATE_DATA.TRANSACTION,
         unitInVault: 2968.13,
         btcInVault: 0.10096,
       },
