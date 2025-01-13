@@ -18,7 +18,6 @@ export const WALLET_PRIVATE_DATA = {
   XVERSE_DISTINCT: process.env.XVERSE_DISTINCT,
   XVERSE_DEVICE_1: process.env.XVERSE_DEVICE_1,
   XVERSE_DEVICE_2: process.env.XVERSE_DEVICE_2,
-  XVERSE_ORIGIN: process.env.XVERSE_ORIGIN,
 };
 
 export const mockWalletBrowserData: LocalStorageItem[] = [
@@ -132,11 +131,7 @@ export const mockWalletExtentionData: LocalStorageItem[] = [
   },
 ];
 
-export const setLocalStorage = async (page: Page, items: LocalStorageItem[], origin?: string) => {
-  if (origin) {
-    await page.goto(origin);
-  }
-
+export const setLocalStorage = async (page: Page, items: LocalStorageItem[]) => {
   await page.evaluate((items) => {
     items.forEach(({ key, value }) => {
       localStorage.setItem(key, value);

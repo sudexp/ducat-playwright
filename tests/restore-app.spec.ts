@@ -119,7 +119,6 @@ test('Restore app', async ({ page }) => {
   const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]);
 
   await setLocalStorage(extensionTab, mockWalletExtentionData);
-  // await setLocalStorage(extensionTab, mockWalletExtentionData, `chrome-extension://${WALLET_PRIVATE_DATA.XVERSE_ORIGIN}`);
 
   const extensionWindow = extensionTab.locator('body');
 
