@@ -23,6 +23,8 @@ test('Restore app', async ({ page }) => {
     throw new Error('APP_URL or EARLY_SUCCESS_URL is not defined.');
   }
 
+  const newPage = await clickLaunchAppAndWaitForPage(page);
+
   await setLocalStorage(page, mockWalletData);
 
   const insertId = uuidv4();
@@ -101,8 +103,6 @@ test('Restore app', async ({ page }) => {
   } else {
     console.error('Failed to send Mixpanel event.');
   }
-
-  const newPage = await clickLaunchAppAndWaitForPage(page);
 
   const connectWalletText = 'Connect Wallet';
   const connectWalletButton = newPage.locator('button', { hasText: connectWalletText }).first();
