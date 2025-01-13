@@ -25,6 +25,7 @@ test('Launch App button click opens new page', async ({ page }) => {
   await expect(newPage).toHaveURL(EARLY_SUCCESS_URL);
 });
 
+// this test is also relevant for browsers that do not support the xverse extension --> https://www.xverse.app/blog/xverse-launches-desktop-browser-extension
 test('Connect Wallet button click shows temporarily popup if Xverse Wallet is not installed', async ({ page }) => {
   const newPage = await clickLaunchAppAndWaitForPage(page);
 
@@ -58,7 +59,7 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
   await expect(inputField).toBeDisabled();
   await expect(verifyButton).toBeDisabled();
 
-  // not necessary to test styles:
+  // not necessary, but let's test some styles:
   const leading5Elements = await newPage.locator('.leading-5');
   const count = await leading5Elements.count();
 
@@ -134,6 +135,8 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed', asy
     await expect(revealButton).not.toBeVisible();
     await expect(hideButton).toBeVisible();
     await expect(continueButton).toBeEnabled();
+
+    // TODO: implement the rest steps
   } catch (err) {
     console.error('Xverse Wallet did not open or failed to display: ', err);
   } finally {
