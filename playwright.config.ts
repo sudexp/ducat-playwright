@@ -34,7 +34,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     headless: getHeadless(process.env.CI),
   },
-  timeout: 60000,
+  // timeout: 60000,
 
   /* Configure projects for major browsers */
   projects: [
