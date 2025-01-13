@@ -3,7 +3,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 import { clickLaunchAppAndWaitForPage, getHeadless } from '../utils/launch-app';
-import { WALLET_PRIVATE_DATA, getLocalStorageItems, mockWalletData, setLocalStorage } from '../utils/restore-app';
+import { WALLET_PRIVATE_DATA, getStorageData, mockWalletBrowserData, mockWalletExtentionData, setLocalStorage } from '../utils/restore-app';
 
 test.beforeEach(async ({ page }) => {
   const ROOT_URL = process.env.ROOT_URL;
@@ -25,7 +25,7 @@ test('Restore app', async ({ page }) => {
 
   const newPage = await clickLaunchAppAndWaitForPage(page);
 
-  await setLocalStorage(page, mockWalletData);
+  await setLocalStorage(page, mockWalletBrowserData);
 
   const insertId = uuidv4();
   const timestamp = Date.now();
@@ -118,21 +118,23 @@ test('Restore app', async ({ page }) => {
 
   const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]);
 
-  const extensionWindow = extensionTab.locator('body');
+  await setLocalStorage(extensionTab, mockWalletExtentionData);
 
-  await setLocalStorage(extensionTab, mockWalletData);
+  const extensionWindow = extensionTab.locator('body');
 
   try {
     await extensionWindow.waitFor({ state: 'visible', timeout: 5000 });
     await expect(extensionWindow).toBeVisible();
     await expect(extensionWindow).toContainText('The Bitcoin wallet for everyone');
 
-    const keysToRetrieve = mockWalletData.map(({ key }) => key);
-    const browserStorage = await getLocalStorageItems(page, keysToRetrieve);
-    const extensionStorage = await getLocalStorageItems(extensionTab, keysToRetrieve);
+    const browserStorage = await getStorageData(page, mockWalletBrowserData);
+    const extensionStorage = await getStorageData(extensionTab, mockWalletExtentionData);
 
-    mockWalletData.forEach(({ key, value }) => {
+    mockWalletBrowserData.forEach(({ key, value }) => {
       expect(browserStorage[key]).toBe(value);
+    });
+
+    mockWalletExtentionData.forEach(({ key, value }) => {
       expect(extensionStorage[key]).toBe(value);
     });
 

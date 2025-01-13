@@ -1,6 +1,8 @@
 import { test as base, chromium, type BrowserContext } from '@playwright/test';
 import path from 'path';
 import { getHeadless } from './launch-app';
+// import { setLocalStorage } from './restore-app';
+// import { mockWalletData } from '../utils/restore-app';
 
 // https://playwright.dev/docs/chrome-extensions --> not currently in use
 export const test = base.extend<{
@@ -13,6 +15,11 @@ export const test = base.extend<{
       headless: getHeadless(process.env.CI),
       args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
     });
+
+    // const extensionPage = await context.waitForEvent('page');
+
+    // await extensionPage.waitForSelector('body', { state: 'attached' });
+    // await setLocalStorage(extensionPage, mockWalletData);
 
     await use(context);
     await context.close();
