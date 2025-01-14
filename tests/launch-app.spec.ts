@@ -168,7 +168,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
 
   const newPage = await clickLaunchAppAndWaitForPage(page);
 
-  await setLocalStorage(page, mockWalletBrowserData);
+  await setLocalStorage(newPage, mockWalletBrowserData);
 
   // mixpanel analytics request testing (optionally)
   const insertId = uuidv4();
@@ -176,7 +176,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
   const url = `https://api-js.mixpanel.com/track/?verbose=1&ip=1&_=${timestamp}`;
   const payload = getMixPanelPayload(insertId, timestamp, EARLY_SUCCESS_URL, WALLET_PRIVATE_DATA);
 
-  const response = await page.evaluate(
+  const response = await newPage.evaluate(
     async ({ url, payload, appUrl }: { url: string; payload: Record<string, any>; appUrl: string }) => {
       const body = new URLSearchParams();
 
@@ -258,7 +258,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
     await extensionWindow.waitFor({ state: 'visible', timeout: 5000 });
     await expect(extensionWindow).toBeVisible();
 
-    const browserStorage = await getStorageData(page, mockWalletBrowserData);
+    const browserStorage = await getStorageData(newPage, mockWalletBrowserData);
     const extensionStorage = await getStorageData(extensionTab, mockWalletExtentionData);
 
     mockWalletBrowserData.forEach(({ key, value }) => {
