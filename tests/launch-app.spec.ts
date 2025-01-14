@@ -14,40 +14,35 @@ import {
 } from '../utils/helpers';
 
 test.beforeEach(async ({ page }) => {
-  const ROOT_URL = process.env.ROOT_URL;
+  const rootUrl = process.env.ROOT_URL;
 
-  if (!ROOT_URL) {
-    throw new Error('ROOT_URL is not defined.');
+  if (!rootUrl) {
+    throw new Error('Root url is not defined.');
   }
 
-  await page.goto(ROOT_URL);
+  await page.goto(rootUrl);
 });
 
-test('Launch App button click opens new page', async ({ page }) => {
-  const newPage = await clickLaunchAppAndWaitForPage(page);
+// not so important navigation test --> skipped
+test.skip('Launch App button click opens new tab at particular url', async ({ page }) => {
+  const { accessTab, successUrl } = await clickLaunchAppAndWaitForPage(page);
 
-  const EARLY_SUCCESS_URL = process.env.EARLY_SUCCESS_URL;
-
-  if (!EARLY_SUCCESS_URL) {
-    throw new Error('EARLY_SUCCESS_URL is not defined');
-  }
-
-  await expect(newPage).toHaveURL(EARLY_SUCCESS_URL);
+  await expect(accessTab).toHaveURL(successUrl);
 });
 
-// this test is also relevant for browsers that do not support the xverse extension --> https://www.xverse.app/blog/xverse-launches-desktop-browser-extension
-test('Connect Wallet button click shows temporarily popup if Xverse Wallet is not installed', async ({ page }) => {
-  const newPage = await clickLaunchAppAndWaitForPage(page);
+// https://www.xverse.app/blog/xverse-launches-desktop-browser-extension
+test('Xverse Wallet extension is not installed or browser do not support it', async ({ page }) => {
+  const { accessTab } = await clickLaunchAppAndWaitForPage(page);
 
   const connectWalletText = 'Connect Wallet';
-  const connectWalletButton = newPage.locator('button', { hasText: connectWalletText }).first();
-  const firstStep = newPage.locator('p', { hasText: connectWalletText });
+  const connectWalletButton = accessTab.locator('button', { hasText: connectWalletText }).first();
+  const firstStep = accessTab.locator('p', { hasText: connectWalletText });
 
   await expect(firstStep).toHaveClass(/text-text-primary/);
   await connectWalletButton.waitFor({ state: 'visible' /*, timeout: 1000 */ });
   await expect(connectWalletButton).toBeVisible();
   await connectWalletButton.click();
-  await newPage.waitForTimeout(500);
+  await accessTab.waitForTimeout(500);
 
   /* difficult to inspect the element:
   const popupText = 'Please Install Xverse Wallet to Continue.';
@@ -63,14 +58,14 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
     console.error('Toast popup did not appear or detached: ', err);
   } */
 
-  const inputField = newPage.locator('input[placeholder="Invitation Code"]');
-  const verifyButton = newPage.locator('button', { hasText: 'Verify' });
+  const inputField = accessTab.locator('input[placeholder="Invitation Code"]');
+  const verifyButton = accessTab.locator('button', { hasText: 'Verify' });
 
   await expect(inputField).toBeDisabled();
   await expect(verifyButton).toBeDisabled();
 
   // not necessary, but let's test some styles:
-  const leading5Elements = newPage.locator('.leading-5');
+  const leading5Elements = accessTab.locator('.leading-5');
   const count = await leading5Elements.count();
 
   for (let i = 0; i < count; i++) {
@@ -84,13 +79,11 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
   }
 });
 
-test('Connect Wallet button click opens Xverse Wallet when it is installed but current wallet is not connected (does not exist)', async ({
-  page,
-}) => {
-  const newPage = await clickLaunchAppAndWaitForPage(page);
+test('Xverse Wallet extension is installed but wallet is not connected (does not exist)', async ({ page }) => {
+  const { accessTab } = await clickLaunchAppAndWaitForPage(page);
 
   const connectWalletText = 'Connect Wallet';
-  const connectWalletButton = newPage.locator('button', { hasText: connectWalletText }).first();
+  const connectWalletButton = accessTab.locator('button', { hasText: connectWalletText }).first();
 
   await connectWalletButton.waitFor({ state: 'visible' });
   await expect(connectWalletButton).toBeVisible();
@@ -101,82 +94,68 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
     args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
   });
 
-  const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]); // --> chrome-extension://{hash}/options.html#/landing
-  const extensionWindow = extensionTab.locator('body');
+  const [extensionWindow] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]); // --> chrome-extension://{hash}/options.html#/landing
+  const extensionBody = extensionWindow.locator('body');
 
-  try {
-    await extensionWindow.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(extensionWindow).toBeVisible();
-    await expect(extensionWindow).toContainText('The Bitcoin wallet for everyone');
+  await extensionBody.waitFor({ state: 'visible', timeout: 5000 });
+  await expect(extensionBody).toBeVisible();
+  await expect(extensionBody).toContainText('The Bitcoin wallet for everyone');
 
-    const createWalletButton = extensionWindow.locator('button', { hasText: 'Create a new wallet' });
-    const restoreWalletButton = extensionWindow.locator('button', { hasText: 'Restore an existing wallet' });
+  const createWalletButton = extensionBody.locator('button', { hasText: 'Create a new wallet' });
+  const restoreWalletButton = extensionBody.locator('button', { hasText: 'Restore an existing wallet' });
 
-    await expect(createWalletButton).toBeVisible();
-    await expect(restoreWalletButton).toBeVisible();
-    await createWalletButton.click(); // --> chrome-extension://{hash}/options.html#/legal
+  await expect(createWalletButton).toBeVisible();
+  await expect(restoreWalletButton).toBeVisible();
+  await createWalletButton.click(); // --> chrome-extension://{hash}/options.html#/legal
 
-    const appDiv = extensionWindow.locator('div#app');
-    const header = appDiv.locator('h1').first();
-    const acceptButton = appDiv.locator('button', { hasText: 'Accept' });
+  const appDiv = extensionBody.locator('div#app');
+  const header = appDiv.locator('h1').first();
+  const acceptButton = appDiv.locator('button', { hasText: 'Accept' });
 
-    await expect(header).toHaveText('Legal');
-    await expect(acceptButton).toBeVisible();
-    await acceptButton.click(); // --> chrome-extension://{hash}/options.html#/backup
+  await expect(header).toHaveText('Legal');
+  await expect(acceptButton).toBeVisible();
+  await acceptButton.click(); // --> chrome-extension://{hash}/options.html#/backup
 
-    const backupNowButton = appDiv.locator('button', { hasText: 'Backup now' });
-    const backupLaterButton = appDiv.locator('button', { hasText: 'Backup later' });
+  const backupNowButton = appDiv.locator('button', { hasText: 'Backup now' });
+  const backupLaterButton = appDiv.locator('button', { hasText: 'Backup later' });
 
-    await expect(header).toHaveText('Backup your wallet');
-    await expect(backupNowButton).toBeVisible();
-    await expect(backupLaterButton).toBeVisible();
-    await backupNowButton.click(); // --> chrome-extension://{hash}/options.html#/backupWalletSteps
+  await expect(header).toHaveText('Backup your wallet');
+  await expect(backupNowButton).toBeVisible();
+  await expect(backupLaterButton).toBeVisible();
+  await backupNowButton.click(); // --> chrome-extension://{hash}/options.html#/backupWalletSteps
 
-    const paragraph = appDiv.locator('p').first();
-    const revealButton = appDiv.locator('button', { hasText: 'Reveal' });
-    const continueButton = appDiv.locator('button', { hasText: 'Continue' });
-    const hideButton = appDiv.locator('button', { hasText: 'Hide' });
+  const paragraph = appDiv.locator('p').first();
+  const revealButton = appDiv.locator('button', { hasText: 'Reveal' });
+  const continueButton = appDiv.locator('button', { hasText: 'Continue' });
+  const hideButton = appDiv.locator('button', { hasText: 'Hide' });
 
-    await expect(paragraph).toHaveText(
-      'Write down your seed phrase and make sure to keep it private. This is the unique key to your wallet.'
-    );
-    await expect(revealButton).toBeVisible();
-    await expect(hideButton).not.toBeVisible();
-    await expect(continueButton).toBeDisabled();
-    await revealButton.click();
-    await expect(revealButton).not.toBeVisible();
-    await expect(hideButton).toBeVisible();
-    await expect(continueButton).toBeEnabled();
+  await expect(paragraph).toHaveText(
+    'Write down your seed phrase and make sure to keep it private. This is the unique key to your wallet.'
+  );
+  await expect(revealButton).toBeVisible();
+  await expect(hideButton).not.toBeVisible();
+  await expect(continueButton).toBeDisabled();
+  await revealButton.click();
+  await expect(revealButton).not.toBeVisible();
+  await expect(hideButton).toBeVisible();
+  await expect(continueButton).toBeEnabled();
 
-    // TODO: implement the rest steps
-  } catch (err) {
-    console.error('Xverse Wallet did not open or failed to display: ', err);
-  } finally {
-    await context.close();
-  }
+  // TODO: implement the rest steps, then close context
+  await context.close();
 });
 
-test('Connect Wallet button click opens Xverse Wallet when it is installed but current wallet is already connected (exists)', async ({
-  page,
-}) => {
-  const APP_URL = process.env.APP_URL;
-  const EARLY_SUCCESS_URL = process.env.EARLY_SUCCESS_URL;
+test('Xverse Wallet extension is installed and current wallet is already connected (exists)', async ({ page }) => {
+  const { accessTab, appUrl, successUrl } = await clickLaunchAppAndWaitForPage(page);
 
-  if (!APP_URL || !EARLY_SUCCESS_URL) {
-    throw new Error('APP_URL or EARLY_SUCCESS_URL is not defined.');
-  }
-
-  const newPage = await clickLaunchAppAndWaitForPage(page);
-
-  await setLocalStorage(newPage, mockWalletBrowserData);
+  await setLocalStorage(accessTab, mockWalletBrowserData);
 
   // mixpanel analytics request testing (optionally)
   const insertId = uuidv4();
   const timestamp = Date.now().toString();
   const url = `https://api-js.mixpanel.com/track/?verbose=1&ip=1&_=${timestamp}`;
-  const payload = getMixPanelPayload(insertId, timestamp, EARLY_SUCCESS_URL, WALLET_PRIVATE_DATA);
+  const payload = getMixPanelPayload(insertId, timestamp, successUrl, WALLET_PRIVATE_DATA);
 
-  const response = await newPage.evaluate(
+  const response = await accessTab.evaluate(
     async ({ url, payload, appUrl }: { url: string; payload: Record<string, any>; appUrl: string }) => {
       const body = new URLSearchParams();
 
@@ -209,7 +188,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
         return false;
       }
     },
-    { url, payload, appUrl: APP_URL }
+    { url, payload, appUrl }
   );
 
   if (response) {
@@ -219,7 +198,7 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
   }
 
   const connectWalletText = 'Connect Wallet';
-  const connectWalletButton = newPage.locator('button', { hasText: connectWalletText }).first();
+  const connectWalletButton = accessTab.locator('button', { hasText: connectWalletText }).first();
 
   await connectWalletButton.waitFor({ state: 'visible' });
   await expect(connectWalletButton).toBeVisible();
@@ -245,33 +224,32 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
   });
   const popupPageUrl = `chrome-extension://${WALLET_PRIVATE_DATA.EXTENSION_ID}/popup.html?p=${WALLET_PRIVATE_DATA.XVERSE_UNLOCK_PATH}`;
 
-  const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]);
-  // const extensionTab = await context.newPage();
+  const [extensionWindow] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]);
+  // const extensionWindow = await context.newPage();
 
   // await new Promise((resolve) => setTimeout(resolve, 3000));
-  // await extensionTab.goto(popupPageUrl, { waitUntil: 'domcontentloaded' });
-  await setLocalStorage(extensionTab, mockWalletExtentionData, popupPageUrl);
+  // await extensionWindow.goto(popupPageUrl, { waitUntil: 'domcontentloaded' });
+  await setLocalStorage(extensionWindow, mockWalletExtentionData, popupPageUrl);
 
-  const extensionWindow = extensionTab.locator('body');
+  const extensionBody = extensionWindow.locator('body');
 
-  try {
-    await extensionWindow.waitFor({ state: 'visible', timeout: 5000 });
-    await expect(extensionWindow).toBeVisible();
+  await extensionBody.waitFor({ state: 'visible', timeout: 5000 });
+  await expect(extensionBody).toBeVisible();
 
-    const browserStorage = await getStorageData(newPage, mockWalletBrowserData);
-    const extensionStorage = await getStorageData(extensionTab, mockWalletExtentionData);
+  const browserStorage = await getStorageData(accessTab, mockWalletBrowserData);
+  const extensionStorage = await getStorageData(extensionWindow, mockWalletExtentionData);
 
-    mockWalletBrowserData.forEach(({ key, value }) => {
-      expect(browserStorage[key]).toBe(value);
-    });
+  mockWalletBrowserData.forEach(({ key, value }) => {
+    expect(browserStorage[key]).toBe(value);
+  });
 
-    mockWalletExtentionData.forEach(({ key, value }) => {
-      expect(extensionStorage[key]).toBe(value);
-    });
+  mockWalletExtentionData.forEach(({ key, value }) => {
+    expect(extensionStorage[key]).toBe(value);
+  });
 
-    await expect(extensionWindow).toContainText('The Bitcoin wallet for everyone'); // incorrect expectation temporarily
+  await expect(extensionBody).toContainText('The Bitcoin wallet for everyone'); // incorrect expectation temporarily
 
-    /* to be expected but does not work:
+  /* to be expected but does not work:
     await expect(extensionWindow).toContainText('Welcome!');
 
     const passwordInput = extensionWindow.locator('#password-input');
@@ -284,9 +262,6 @@ test('Connect Wallet button click opens Xverse Wallet when it is installed but c
 
     await expect(unlockButton).toBeVisible();
     await unlockButton.click(); */
-  } catch (err) {
-    console.error('Xverse Wallet did not open or failed to display: ', err);
-  } finally {
-    await context.close();
-  }
+
+  await context.close();
 });

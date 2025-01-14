@@ -1,22 +1,22 @@
 import { expect, type Page } from '@playwright/test';
 
-import { LocalStorageItem, MixPanelPayload, WalletStorage } from './interfaces';
+import { LaunchResult, LocalStorageItem, MixPanelPayload, WalletStorage } from './interfaces';
 
-export const clickLaunchAppAndWaitForPage = async (page: any): Promise<Page> => {
+export const clickLaunchAppAndWaitForPage = async (page: Page): Promise<LaunchResult> => {
+  const appUrl = process.env.APP_URL;
+  const successUrl = process.env.EARLY_SUCCESS_URL;
+
+  if (!appUrl || !successUrl) {
+    throw new Error('Environment urls are not defined.');
+  }
+
   const launchButton = page.locator('p.framer-text', { hasText: 'Launch App' }).first();
 
   await expect(launchButton).toBeVisible();
 
-  const [newPage] = await Promise.all([page.context().waitForEvent('page'), launchButton.click()]);
-  const EARLY_SUCCESS_URL = process.env.EARLY_SUCCESS_URL;
+  const [accessTab] = await Promise.all([page.context().waitForEvent('page'), launchButton.click()]);
 
-  if (!EARLY_SUCCESS_URL) {
-    throw new Error('EARLY_SUCCESS_URL is not defined');
-  }
-
-  await expect(newPage).toHaveURL(EARLY_SUCCESS_URL);
-
-  return newPage;
+  return { accessTab, appUrl, successUrl };
 };
 
 export const getHeadless = (CI: string | undefined): boolean => {

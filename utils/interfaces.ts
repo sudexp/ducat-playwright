@@ -1,6 +1,14 @@
+import { type Page } from '@playwright/test';
+
 export interface LocalStorageItem {
   key: string;
   value: string;
+}
+
+export interface LaunchResult {
+  accessTab: Page;
+  appUrl: string;
+  successUrl: string;
 }
 
 export interface WalletStorage {
