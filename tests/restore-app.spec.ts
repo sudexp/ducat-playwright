@@ -111,14 +111,32 @@ test('Restore app', async ({ page }) => {
   await expect(connectWalletButton).toBeVisible();
 
   const pathToExtension = path.join(__dirname, '../xverse/');
+
   const context = await chromium.launchPersistentContext('', {
     headless: getHeadless(process.env.CI),
-    args: [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`],
+    args: [
+      `--disable-extensions-except=${pathToExtension}`,
+      `--load-extension=${pathToExtension}`,
+      // '--disable-features=ExtensionsMenuAccessControl',
+      // '--disable-client-side-phishing-detection',
+      // '--disable-web-security',
+      // '--disable-site-isolation-trials',
+      // '--disable-popup-blocking',
+      // '--allow-running-insecure-content',
+      // '--no-sandbox',
+      // '--disable-setuid-sandbox',
+      // '--disable-blink-features=AutomationControlled',
+      // '--remote-debugging-port=9222',
+    ],
   });
+  const popupPageUrl = `chrome-extension://${WALLET_PRIVATE_DATA.EXTENSION_ID}/popup.html?p=${WALLET_PRIVATE_DATA.XVERSE_UNLOCK_PATH}`;
 
   const [extensionTab] = await Promise.all([context.waitForEvent('page'), connectWalletButton.click()]);
+  // const extensionTab = await context.newPage();
 
-  await setLocalStorage(extensionTab, mockWalletExtentionData);
+  // await new Promise((resolve) => setTimeout(resolve, 3000));
+  // await extensionTab.goto(popupPageUrl, { waitUntil: 'domcontentloaded' });
+  await setLocalStorage(extensionTab, mockWalletExtentionData, popupPageUrl);
 
   const extensionWindow = extensionTab.locator('body');
 

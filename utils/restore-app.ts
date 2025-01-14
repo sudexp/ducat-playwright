@@ -13,11 +13,13 @@ export const WALLET_PRIVATE_DATA = {
   TRANSACTION: process.env.TRANSACTION,
   TRANSACTION_HISTORY: process.env.TRANSACTION_HISTORY,
   // xverse extension
+  EXTENSION_ID: process.env.EXTENSION_ID,
   XVERSE_FIRST: process.env.XVERSE_FIRST,
   XVERSE_SECOND: process.env.XVERSE_SECOND,
   XVERSE_DISTINCT: process.env.XVERSE_DISTINCT,
   XVERSE_DEVICE_1: process.env.XVERSE_DEVICE_1,
   XVERSE_DEVICE_2: process.env.XVERSE_DEVICE_2,
+  XVERSE_UNLOCK_PATH: process.env.XVERSE_UNLOCK_PATH,
 };
 
 export const mockWalletBrowserData: LocalStorageItem[] = [
@@ -131,12 +133,22 @@ export const mockWalletExtentionData: LocalStorageItem[] = [
   },
 ];
 
-export const setLocalStorage = async (page: Page, items: LocalStorageItem[]) => {
-  await page.evaluate((items) => {
-    items.forEach(({ key, value }) => {
-      localStorage.setItem(key, value);
-    });
-  }, items);
+export const setLocalStorage = async (page: Page, items: LocalStorageItem[], origin?: string) => {
+  if (origin) {
+    await page.addInitScript((items) => {
+      items.forEach(({ key, value }) => {
+        localStorage.setItem(key, value);
+      });
+    }, items);
+
+    await page.goto(origin);
+  } else {
+    await page.evaluate((items) => {
+      items.forEach(({ key, value }) => {
+        localStorage.setItem(key, value);
+      });
+    }, items);
+  }
 };
 
 const getLocalStorageItems = async (context: Page, keys: string[]) => {
