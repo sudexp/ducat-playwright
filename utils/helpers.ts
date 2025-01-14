@@ -1,25 +1,43 @@
-import { Page } from 'playwright';
+import { expect, type Page } from '@playwright/test';
 
-export interface LocalStorageItem {
-  key: string;
-  value: string;
-}
+import { LocalStorageItem, MixPanelPayload, WalletStorage } from './interfaces';
 
-export const WALLET_PRIVATE_DATA = {
+export const clickLaunchAppAndWaitForPage = async (page: any): Promise<Page> => {
+  const launchButton = page.locator('p.framer-text', { hasText: 'Launch App' }).first();
+
+  await expect(launchButton).toBeVisible();
+
+  const [newPage] = await Promise.all([page.context().waitForEvent('page'), launchButton.click()]);
+  const EARLY_SUCCESS_URL = process.env.EARLY_SUCCESS_URL;
+
+  if (!EARLY_SUCCESS_URL) {
+    throw new Error('EARLY_SUCCESS_URL is not defined');
+  }
+
+  await expect(newPage).toHaveURL(EARLY_SUCCESS_URL);
+
+  return newPage;
+};
+
+export const getHeadless = (CI: string | undefined): boolean => {
+  return CI === 'true';
+};
+
+export const WALLET_PRIVATE_DATA: WalletStorage = {
   // browser
-  DISTINCT: process.env.DISTINCT,
-  DEVICE: process.env.DEVICE,
-  TOKEN: process.env.TOKEN,
-  TRANSACTION: process.env.TRANSACTION,
-  TRANSACTION_HISTORY: process.env.TRANSACTION_HISTORY,
+  DISTINCT: process.env.DISTINCT as string,
+  DEVICE: process.env.DEVICE as string,
+  TOKEN: process.env.TOKEN as string,
+  TRANSACTION: process.env.TRANSACTION as string,
+  TRANSACTION_HISTORY: process.env.TRANSACTION_HISTORY as string,
   // xverse extension
-  EXTENSION_ID: process.env.EXTENSION_ID,
-  XVERSE_FIRST: process.env.XVERSE_FIRST,
-  XVERSE_SECOND: process.env.XVERSE_SECOND,
-  XVERSE_DISTINCT: process.env.XVERSE_DISTINCT,
-  XVERSE_DEVICE_1: process.env.XVERSE_DEVICE_1,
-  XVERSE_DEVICE_2: process.env.XVERSE_DEVICE_2,
-  XVERSE_UNLOCK_PATH: process.env.XVERSE_UNLOCK_PATH,
+  EXTENSION_ID: process.env.EXTENSION_ID as string,
+  XVERSE_FIRST: process.env.XVERSE_FIRST as string,
+  XVERSE_SECOND: process.env.XVERSE_SECOND as string,
+  XVERSE_DISTINCT: process.env.XVERSE_DISTINCT as string,
+  XVERSE_DEVICE_1: process.env.XVERSE_DEVICE_1 as string,
+  XVERSE_DEVICE_2: process.env.XVERSE_DEVICE_2 as string,
+  XVERSE_UNLOCK_PATH: process.env.XVERSE_UNLOCK_PATH as string,
 };
 
 export const mockWalletBrowserData: LocalStorageItem[] = [
@@ -133,7 +151,7 @@ export const mockWalletExtentionData: LocalStorageItem[] = [
   },
 ];
 
-export const setLocalStorage = async (page: Page, items: LocalStorageItem[], origin?: string) => {
+export const setLocalStorage = async (page: Page, items: LocalStorageItem[], origin?: string): Promise<void> => {
   if (origin) {
     await page.addInitScript((items) => {
       items.forEach(({ key, value }) => {
@@ -151,7 +169,7 @@ export const setLocalStorage = async (page: Page, items: LocalStorageItem[], ori
   }
 };
 
-const getLocalStorageItems = async (context: Page, keys: string[]) => {
+const getLocalStorageItems = async (context: Page, keys: string[]): Promise<Record<string, string | null>> => {
   return await context.evaluate((keys) => {
     return keys.reduce((acc, key) => {
       acc[key] = localStorage.getItem(key);
@@ -160,8 +178,46 @@ const getLocalStorageItems = async (context: Page, keys: string[]) => {
   }, keys);
 };
 
-export const getStorageData = async (page: Page, mockData: Array<{ key: string }>): Promise<Record<string, any>> => {
+export const getStorageData = async (page: Page, mockData: Array<{ key: string }>): Promise<Record<string, string | null>> => {
   const keys = mockData.map(({ key }) => key);
 
   return await getLocalStorageItems(page, keys);
+};
+
+export const getMixPanelPayload = (
+  insertId: string,
+  timestamp: string,
+  EARLY_SUCCESS_URL: string,
+  WALLET_PRIVATE_DATA: WalletStorage
+): MixPanelPayload => {
+  return {
+    data: [
+      {
+        event: '$mp_web_page_view',
+        properties: {
+          $os: 'Mac OS X',
+          $browser: 'Chrome',
+          $current_url: EARLY_SUCCESS_URL,
+          $browser_version: 131,
+          $screen_height: 1080,
+          $screen_width: 1920,
+          mp_lib: 'web',
+          $lib_version: '2.56.0',
+          $insert_id: insertId,
+          time: timestamp,
+          distinct_id: WALLET_PRIVATE_DATA.DISTINCT,
+          $device_id: WALLET_PRIVATE_DATA.DEVICE,
+          $initial_referrer: '$direct',
+          $initial_referring_domain: '$direct',
+          $user_id: WALLET_PRIVATE_DATA.DISTINCT,
+          current_page_title: 'Ducat',
+          current_domain: 'app.ducatprotocol.com',
+          current_url_path: '/early-access',
+          current_url_protocol: 'https:',
+          token: WALLET_PRIVATE_DATA.TOKEN,
+          mp_sent_by_lib_version: '2.56.0',
+        },
+      },
+    ],
+  };
 };

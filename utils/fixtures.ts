@@ -1,10 +1,11 @@
 import { test as base, chromium, type BrowserContext } from '@playwright/test';
 import path from 'path';
-import { getHeadless } from './launch-app';
+
+import { getHeadless } from './helpers';
 // import { setLocalStorage } from './restore-app';
 // import { mockWalletData } from '../utils/restore-app';
 
-// https://playwright.dev/docs/chrome-extensions --> not currently in use
+// not currently in use --> https://playwright.dev/docs/chrome-extensions
 export const test = base.extend<{
   context: BrowserContext;
   extensionId: string;
