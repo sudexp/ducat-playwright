@@ -70,7 +70,7 @@ test('Connect Wallet button click shows temporarily popup if Xverse Wallet is no
   await expect(verifyButton).toBeDisabled();
 
   // not necessary, but let's test some styles:
-  const leading5Elements = await newPage.locator('.leading-5');
+  const leading5Elements = newPage.locator('.leading-5');
   const count = await leading5Elements.count();
 
   for (let i = 0; i < count; i++) {
