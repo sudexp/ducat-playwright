@@ -20,7 +20,7 @@
    yarn playwright show-report
    ```
 
-6. **Alternatively, a combined approach can be used.:**
+6. **Alternatively, a combined approach can be used:**
 
    ```bash
    yarn test:ui-and-report
